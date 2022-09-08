@@ -1,5 +1,5 @@
 #######################################################################################################
-# Script: Update DestinationAddressPrefix in NSG rule for a specific route in a subscription- Azure
+# Script: Update the SourceAddressPrefix & DestinationAddressPrefix in NSG rule in a specific subscription- Azure
 # Author: Frankie Yuen
 # Date: Sept 2022
 # Version: 1.0
@@ -23,10 +23,17 @@
 # 
 # For parameters $CurrentIP & $NewIP, there is no subnet mask calculation logic to compare 
 # e.g. 192.168.0.10 is equal to in 192.168.0.10/32, it is just a substring comparison.
+#
 # Please run the script twice to make sure both notation has been covered.
-# 1. Use CIDR format e.g. 192.168.0.10/32
-# 2. Use fix IP e.g.192.168.0.10
-# 
+#
+# Frist Run with CIDR format
+#      • $CurrentIP = "192.168.0.10/32"
+#      • $NewIP = "192.168.0.20/32"
+#
+# Second Run with a fix IP format
+#     • $CurrentIP = "192.168.0.10"
+#     • $NewIP = "192.168.0.20"
+#
 
 Param
 (

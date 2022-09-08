@@ -1,0 +1,64 @@
+#######################################################################################################
+# Script: Update the SourceAddressPrefix & DestinationAddressPrefix in NSG rule in a specific subscription- Azure
+# Author: Frankie Yuen
+# Date: Sept 2022
+# Version: 1.0
+# References: 
+# GitHub: 
+#
+# THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
+# ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+# PARTICULAR PURPOSE.
+#
+# IN NO EVENT SHALL MICROSOFT AND/OR ITS RESPECTIVE SUPPLIERS BE
+# LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+# DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+# ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+# OF THIS CODE OR INFORMATION.
+#
+#
+########################################################################################################
+# 
+# For parameters $CurrentIP & $NewIP, there is no subnet mask calculation logic to compare 
+# e.g. 192.168.0.10 is equal to in 192.168.0.10/32, it is just a substring comparison.
+#
+# Please run the script twice to make sure both notation has been covered.
+#
+# Frist Run with CIDR format
+#      • $CurrentIP = "192.168.0.10/32"
+#      • $NewIP = "192.168.0.20/32"
+#
+# Second Run with a fix IP format
+#     • $CurrentIP = "192.168.0.10"
+#     • $NewIP = "192.168.0.20"
+#
+
+# Sample IP using CIDR
+$CurrentIP = "192.168.0.10/32"
+$NewIP = "192.168.0.20/32"
+
+
+$nsgs = Get-AzNetworkSecurityGroup 
+
+# Fix at SourceAddressPrefix, exclude default rules and only match SourceAddressPrefix
+$rulenamesource = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.SourceAddressPrefix -match $CurrentIP)})
+Write-Output $rulenamesource
+
+Foreach ($rule in $rulenamesource) {
+	$source = ($nsgs.SecurityRules | Where-Object {$_.Name -eq $rule.Name}).SourceAddressPrefix 
+	($nsgs.SecurityRules | Where-Object {$_.Name -eq $rule.Name}).SourceAddressPrefix = [System.String[]]($source -replace $CurrentIP, $NewIP)
+}
+
+# Fix at DestinationAddressPrefix, exclude default rules and only match DestinationAddressPrefix
+$rulenamedest = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.DestinationAddressPrefix -match $CurrentIP)})
+Write-Output $rulenamedest
+
+Foreach ($rule in $rulenamedest) {
+	$dest = ($nsgs.SecurityRules | Where-Object {$_.Name -eq $rule.Name}).DestinationAddressPrefix 
+	($nsgs.SecurityRules | Where-Object {$_.Name -eq $rule.Name}).DestinationAddressPrefix = [System.String[]]($dest -replace $CurrentIP, $NewIP)
+}
+
+# Update NSGs
+$nsgs | Set-AzNetworkSecurityGroup 

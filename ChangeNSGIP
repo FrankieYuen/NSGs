@@ -50,13 +50,13 @@ Connect-AzAccount -Identity
 Select-AzSubscription -SubscriptionId $subid
 
 # Sample IP using CIDR
-# $CurrentIP = [System.String[]] @("192.168.0.10/32")
-# $NewIP = [System.String[]] @("192.168.0.20/32")
+# $CurrentIP = "192.168.0.10/32"
+# $NewIP = "192.168.0.20/32"
 
 
 $nsgs = Get-AzNetworkSecurityGroup 
 
-# Fix at SourceAddressPrefix
+# Fix at SourceAddressPrefix, exclude default rules and only match SourceAddressPrefix
 $rulenamesource = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.SourceAddressPrefix -match $CurrentIP)})
 Write-Output $rulenamesource
 
@@ -65,7 +65,7 @@ Foreach ($rule in $rulenamesource) {
 	($nsgs.SecurityRules | Where-Object {$_.Name -eq $rule.Name}).SourceAddressPrefix = [System.String[]]($source -replace $CurrentIP, $NewIP)
 }
 
-#Fix at DestinationAddressPrefix
+# Fix at DestinationAddressPrefix, exclude default rules and only match DestinationAddressPrefix
 $rulenamedest = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.DestinationAddressPrefix -match $CurrentIP)})
 Write-Output $rulenamedest
 

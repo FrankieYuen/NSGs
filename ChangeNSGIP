@@ -64,17 +64,18 @@ $nsgnames = Get-AzNetworkSecurityGroup|Select-Object ResourceGroupName, Name
 Foreach ($n in $nsgnames){
 	$updated = "No"
   
-  # Process NSG Rule one by one per NSG
+	# Process NSG Rule one by one per NSG
 	$nsg = Get-AzNetworkSecurityGroup -Name $n.Name -ResourceGroupName $n.ResourceGroupName
 	$rulenamesource = $nsg | Get-AzNetworkSecurityRuleConfig 
   
-  Foreach ($rule in $rulenamesource) {
-    # Find and replace SourceAddressPrefix
+	Foreach ($rule in $rulenamesource) {
+		# Find and replace SourceAddressPrefix
 		if ($rule.SourceAddressPrefix -match $CurrentIP) {
 			$rule.SourceAddressPrefix = [System.String[]]($rule.SourceAddressPrefix -replace $CurrentIP, $NewIP)
 			$updated = "Yes"
 		}
-    # Find and replace DestinationAddressPrefix
+
+		# Find and replace DestinationAddressPrefix
 		if ($rule.DestinationAddressPrefix -match $CurrentIP) {
 			$rule.DestinationAddressPrefix = [System.String[]]($rule.DestinationAddressPrefix -replace $CurrentIP, $NewIP)
 			$updated = "Yes"
@@ -82,10 +83,10 @@ Foreach ($n in $nsgnames){
 	}
 	if ($updated -eq "Yes") {
 		if ($FixNow -eq "Yes") {
-      # Update the changes
+			# Update the changes
 			Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg
 		} else {
-      # Just export the target NSG
+			# Just export the target NSG
 			$nsg
 		}
 	}

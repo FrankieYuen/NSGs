@@ -43,9 +43,8 @@ Param
   [string] $CurrentIP,
   [Parameter (Mandatory= $true)]
   [string] $NewIP,
-  [Parameter]
+  [Parameter (Mandatory= $true)]
   [string] $FixNow
-  # Optional Parameter 
   # "Yes" - Perform actual update
   # Otherwise - find the change NSGs 
 )

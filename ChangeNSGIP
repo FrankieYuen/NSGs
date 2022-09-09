@@ -1,0 +1,93 @@
+#######################################################################################################
+# Script: Update the SourceAddressPrefix & DestinationAddressPrefix in NSG rule in a specific subscription- Azure
+# Author: Frankie Yuen
+# Date: Sept 2022
+# Version: 1.0
+# References: 
+# GitHub: 
+#
+# THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
+# ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+# PARTICULAR PURPOSE.
+#
+# IN NO EVENT SHALL MICROSOFT AND/OR ITS RESPECTIVE SUPPLIERS BE
+# LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+# DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+# ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+# OF THIS CODE OR INFORMATION.
+#
+#
+########################################################################################################
+# 
+# For parameters $CurrentIP & $NewIP, there is no subnet mask calculation logic to compare 
+# e.g. 192.168.0.10 is equal to in 192.168.0.10/32, it is just a substring comparison.
+#
+# Please run the script twice to make sure both notation has been covered.
+#
+# Frist Run with CIDR format
+#      • $CurrentIP = "192.168.0.10/32"
+#      • $NewIP = "192.168.0.20/32"
+#
+# Second Run with a fix IP format
+#     • $CurrentIP = "192.168.0.10"
+#     • $NewIP = "192.168.0.20"
+#
+
+Param
+(
+  [Parameter (Mandatory= $true)]
+  [string] $subid,
+  [Parameter (Mandatory= $true)]
+  [string] $CurrentIP,
+  [Parameter (Mandatory= $true)]
+  [string] $NewIP,
+  [Parameter]
+  [string] $FixNow
+  # Optional Parameter 
+  # "Yes" - Perform actual update
+  # Otherwise - find the change NSGs 
+)
+
+#Connect-AzAccount -Identity
+
+Select-AzSubscription -SubscriptionId $subid
+
+# Sample IP using CIDR
+# $CurrentIP = "192.168.0.10/32"
+# $NewIP = "192.168.0.20/32"
+
+# Total number of NSGs
+$nsgnames = Get-AzNetworkSecurityGroup|Select-Object ResourceGroupName, Name
+
+# Process NSG one by one
+Foreach ($n in $nsgnames){
+	$updated = "No"
+  
+  # Process NSG Rule one by one per NSG
+	$nsg = Get-AzNetworkSecurityGroup -Name $n.Name -ResourceGroupName $n.ResourceGroupName
+	$rulenamesource = $nsg | Get-AzNetworkSecurityRuleConfig 
+  
+  Foreach ($rule in $rulenamesource) {
+    # Find and replace SourceAddressPrefix
+		if ($rule.SourceAddressPrefix -match $CurrentIP) {
+			$rule.SourceAddressPrefix = [System.String[]]($rule.SourceAddressPrefix -replace $CurrentIP, $NewIP)
+			$updated = "Yes"
+		}
+    # Find and replace DestinationAddressPrefix
+		if ($rule.DestinationAddressPrefix -match $CurrentIP) {
+			$rule.DestinationAddressPrefix = [System.String[]]($rule.DestinationAddressPrefix -replace $CurrentIP, $NewIP)
+			$updated = "Yes"
+		}
+	}
+	if ($updated -eq "Yes") {
+		if ($FixNow -eq "Yes") {
+      # Update the changes
+			Set-AzNetworkSecurityGroup -NetworkSecurityGroup $nsg
+		} else {
+      # Just export the target NSG
+			$nsg
+		}
+	}
+}

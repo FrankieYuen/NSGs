@@ -70,13 +70,13 @@ Foreach ($n in $nsgnames){
   
 	Foreach ($rule in $rulenamesource) {
 		# Find and replace SourceAddressPrefix
-		if ($rule.SourceAddressPrefix -match $CurrentIP) {
+		if ($rule.SourceAddressPrefix -eq $CurrentIP) {
 			$rule.SourceAddressPrefix = [System.String[]]($rule.SourceAddressPrefix -replace $CurrentIP, $NewIP)
 			$updated = "Yes"
 		}
 
 		# Find and replace DestinationAddressPrefix
-		if ($rule.DestinationAddressPrefix -match $CurrentIP) {
+		if ($rule.DestinationAddressPrefix -eq $CurrentIP) {
 			$rule.DestinationAddressPrefix = [System.String[]]($rule.DestinationAddressPrefix -replace $CurrentIP, $NewIP)
 			$updated = "Yes"
 		}

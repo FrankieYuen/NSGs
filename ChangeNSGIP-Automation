@@ -57,7 +57,7 @@ Select-AzSubscription -SubscriptionId $subid
 $nsgs = Get-AzNetworkSecurityGroup 
 
 # Fix at SourceAddressPrefix, exclude default rules and only match SourceAddressPrefix
-$rulenamesource = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.SourceAddressPrefix -match $CurrentIP)})
+$rulenamesource = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.SourceAddressPrefix -eq $CurrentIP)})
 Write-Output $rulenamesource
 
 Foreach ($rule in $rulenamesource) {
@@ -66,7 +66,7 @@ Foreach ($rule in $rulenamesource) {
 }
 
 # Fix at DestinationAddressPrefix, exclude default rules and only match DestinationAddressPrefix
-$rulenamedest = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.DestinationAddressPrefix -match $CurrentIP)})
+$rulenamedest = ($nsgs.SecurityRules | Where-Object {($_.Priority -ne "65000" -or $_.Priority -ne "65001" -or $_.Priority -ne "65500") -and ($_.DestinationAddressPrefix -eq $CurrentIP)})
 Write-Output $rulenamedest
 
 Foreach ($rule in $rulenamedest) {

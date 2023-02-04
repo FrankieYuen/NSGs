@@ -1,4 +1,4 @@
-# NSGs - Change of IP Ranges for mulitple NSGs in a large Azure Network environment
+# NSGs - Change of IP Ranges for multiple NSGs in a large Azure Network environment
 
 Manage change of IPs at NSG is simple. But to change an IP address that spin across hundreds of NSGs will become a very tedious task. 
 
